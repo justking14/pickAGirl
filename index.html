@@ -1,0 +1,646 @@
+<!doctype html>
+<head>
+    <title>Be Reborn From The Ashes Of The Fallen King</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css" type="text/css">
+    <script src='./Tone.js'></script>
+
+</head>
+
+<body>
+<main>
+    <canvas class="retro" id="game" width="96" height="96"></canvas>
+</main>
+<body onkeydown="return userControl(event);">
+<body onmousedown="return mouseControl(event);"
+
+<script type="text/javascript" src="Sprite.js"></script>
+        
+<script>
+var chosenGirlDialogue = [[], ["..........","...","......."], ["HOW ARE YOU   DOING?", "WANNA GET A   BITE TO EAT?", "ARE YOU CHEATING ON ME?"], ["WANNA DO SOMETHING TODAY?"], ["LET US BRING ABOUT ETERNAL SUFFERING.", "DO YOU KNOW BEELZEBUB?", "I LIKE PONIES"]]
+var currentDialogueOption = 0;
+var dialoguePicked = false
+var mouseControl = function(event){
+    console.log(event.clientY, event.screenY, event.pageY)
+
+    if(currentGameState === gameState.main){
+        if(event.clientY > 550 && event.clientY < 670 ){
+            //talk 
+            if(energy > 0){
+                var synth = new Tone.Synth().toMaster();
+                synth.triggerAttackRelease("C4", "8n"); 
+
+                currentDialogueOption = randomIntFromInterval(0,chosenGirlDialogue[chosenGirl].length - 1)
+                letterCount = 0
+                energy-=1
+                dialoguePicked = true
+            }else{
+                var synth = new Tone.Synth().toMaster();
+                synth.triggerAttackRelease("C2", "4n"); 
+            }
+
+        }else if(event.clientY > 700 && event.clientY < 820){
+            //propose
+            letterCount = 0
+            currentGameState = gameState.end
+            setInterval(playNote, 1000)
+            setInterval(updateHearts, 500)
+        }
+    }
+}
+
+var playNote = function(){
+    var freq = randomIntFromInterval(1,10)
+    var freq2 = randomIntFromInterval(1,10)
+
+    var c = "C" + freq
+
+//create a synth and connect it to the master output (your speakers)
+var synth = new Tone.Synth().toMaster();
+
+//play a middle 'C' for the duration of an 8th note
+synth.triggerAttackRelease(c, "8n");
+
+//play a note every quarter-note
+var loop = new Tone.Loop(function(time){
+	synth.triggerAttackRelease("C2", "8n", time);
+}, "4n");
+loop.start("1m").stop("4m");
+Tone.Transport.start();
+
+    /*
+    var freq = randomIntFromInterval(1,10)/10.0
+    var attack = randomIntFromInterval(1,10)/10.0
+    var decay = randomIntFromInterval(1,10)/10.0
+    var sustain = randomIntFromInterval(1,10)/10.0
+    var release = randomIntFromInterval(1,10)/10.0
+
+    var synth = new Tone.Synth({
+	"oscillator" : {
+		"type" : "pwm",
+		"modulationFrequency" : ringY/96.0
+	},
+	"envelope" : {
+		"attack" : attack,
+		"decay" : decay,
+		"sustain" : sustain,
+		"release" : release,
+	}
+}).toMaster();
+
+//start the note "D3" one second from now
+synth.triggerAttack("D3", "+1");
+*/
+}
+var userControl = function(event){
+    var keycode;
+    
+        if (window.event) {
+            //alert('ie');
+            keycode = event.keyCode;
+        } else if (event.which) {
+            //alert('firefox ');
+            keycode = event.which;
+        }
+        onTitle = false
+        
+        if([32, 37, 38, 39, 40].indexOf(keycode) > -1) {
+            event.preventDefault();
+        }
+        console.log(keycode,   String.fromCharCode(keycode))
+        var key = String.fromCharCode(keycode)
+   
+        if(currentGameState === gameState.pickingGirl){
+            if(key === "1"){
+                //create a synth and connect it to the master output (your speakers)
+                var synth = new Tone.Synth().toMaster();
+                synth.triggerAttackRelease("C4", "8n"); 
+
+                letterCount = 0
+                currentGameState = gameState.Introduction;
+                chosenGirl = 1;
+            }else if(key === "2"){
+                var synth = new Tone.Synth().toMaster();
+                synth.triggerAttackRelease("C4", "8n"); 
+
+                letterCount = 0
+                currentGameState = gameState.Introduction;
+                chosenGirl = 2;
+            }else if(key === "3"){
+                var synth = new Tone.Synth().toMaster();
+                synth.triggerAttackRelease("C4", "8n"); 
+
+                letterCount = 0
+                currentGameState = gameState.Introduction;
+                chosenGirl = 3;
+            }else if(key === "4"){
+                var synth = new Tone.Synth().toMaster();
+                synth.triggerAttackRelease("C4", "8n"); 
+
+                letterCount = 0
+                currentGameState = gameState.Introduction;
+                chosenGirl = 4;
+            }else{
+                var synth = new Tone.Synth().toMaster();
+                synth.triggerAttackRelease("C2", "4n"); 
+            }
+        }else if(currentGameState === gameState.Introduction){
+            letterCount = 0
+            currentGameState = gameState.main
+        }
+
+}
+var chosenGirl = 0;
+
+worldSize = 96
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+//Returns true if the circles are touching, or false if they are not
+var collidingWithEdge = function(x1, y1, radius1, edgeX, edgeY, radius2){
+    var dist = distance(x1,y1,edgeX,edgeY)
+    if(dist < radius2 - radius1){
+       return false 
+   }else{
+        return true
+    }
+}
+
+var circlesColliding = function( x1, y1, radius1, x2, y2, radius2){
+    //compare the distance to combined radii
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var radii = radius1 + radius2;
+    //console.log(Math.sqrt(Math.abs(((dx*dx)+(dy*dy)) - radii*radii)))
+    if ( ( dx * dx )  + ( dy * dy ) < radii * radii ) {
+        return true;
+    }else{
+        return false;
+    }
+}
+
+var distance = function(x1,y1,x2,y2){
+    var a = x1 - x2
+    var b = y1 - y2
+
+    return Math.sqrt( a*a + b*b );
+}
+var mAllObjects = {
+        tile: [], player:[], wall:[], enemy:[], rocks:[]
+}; 
+
+var centerRadius = 0
+
+
+function randomIntFromInterval(min,max){
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+var circles = []
+var initialize = function(){
+    var rgs = setInterval(updateLetterCount,100 )
+
+    for(var i = 0; i < 7; i++){
+        var foundSpot = false
+        while(foundSpot === false){
+            foundSpot = true
+            var x = randomIntFromInterval(6,90)
+            var y = randomIntFromInterval(6,90)
+            var vX = randomIntFromInterval(0,4) - 2
+            var vY = randomIntFromInterval(0,4) - 2
+            var rad = randomIntFromInterval(3,12)
+            var color = getRandomColor()
+
+            if(circles.length > 0 ){
+                for(var j = 0; j < circles.length;j++){
+                    if(circlesColliding(circles[j][0],circles[j][1],circles[j][2],x,y,rad)){
+                        foundSpot = false
+            }   }   }
+            if(foundSpot === true){
+                circles.push([x,y,rad,vX,vY, color])
+            }
+        }
+    }
+}
+var mCurrentTime, mElapsedTime, mPreviousTime = Date.now(), mLagTime = 0;
+var kFPS = 30;          // Frames per second
+var kFrameTime = 1 / kFPS;
+var mUpdateIntervalInSeconds = kFrameTime;
+var kMPF = 1000 * kFrameTime; // Milliseconds per frame.
+
+var runGameLoop = function () {
+        requestAnimationFrame(function () {
+            runGameLoop();
+        });        
+
+        var mCurrentTime = Date.now();
+        var mElapsedTime = mCurrentTime - mPreviousTime;
+		var FPS = 100 / (mElapsedTime);
+        mPreviousTime = mCurrentTime;
+        mLagTime += mElapsedTime;
+ 
+        while (mLagTime >= kMPF) {
+            mLagTime -= kMPF;
+            update();
+        }
+        draw();
+
+    };
+
+var getWords = function(words){
+    var wordArray = []
+    for(var i = 0; i < words.length; i++){
+        if(words[i] != " " && words[i] != "." && words[i] != "?"){
+            var newLetter = getLetter(words[i])
+            wordArray.push([i,newLetter])
+        }else if(words[i] === "."){
+            var pre = "images/neoletters/dot.png"
+            var newImage = new Image()
+            newImage.src = pre;
+            wordArray.push([i, newImage])
+        }else if(words[i] === "?"){
+            var pre = "images/neoletters/question.png"
+            var newImage = new Image()
+            newImage.src = pre;
+            wordArray.push([i, newImage])
+        }
+    }
+    return wordArray
+}
+
+var getLetter = function(letter){
+    var pre = "images/neoletters/" + letter + ".png"
+    var newImage = new Image()
+    newImage.src = pre;
+    return newImage
+}
+var gameState = {
+		pickingGirl : 1, 
+		Introduction: 2, 
+        main : 3,
+        end: 4
+	}; 
+	
+var currentGameState = gameState.pickingGirl;
+
+
+var letterCount = 0
+var energy = 4
+var ringX = 32
+var ringY = 30
+var updateLetterCount = function(){
+   // console.log(letterCount)
+    letterCount++
+}
+var draw2 = function(ctx){
+    if(currentGameState === gameState.pickingGirl){
+        var girl = new Image()
+        girl.src = "images/girl6.png"
+        ctx.drawImage(girl,-5,96 - 32)
+
+        var girl2 = new Image()
+        girl2.src = "images/girl1.png"
+        ctx.drawImage(girl2,20,96 - 32)
+
+        var girl3 = new Image()
+        girl3.src = "images/girl2.png"
+        ctx.drawImage(girl3,45,96 - 32)
+
+        var girl4 = new Image()
+        girl4.src = "images/girl3.png"
+        ctx.drawImage(girl4,70,96 - 32)
+
+        var firstSentence = "WHICH GIRL    WILL YOU    PICK?"
+        ar = getWords(firstSentence)
+        var yVar = 0
+        for(var i = 0; i < ar.length;i++){
+            if(i < letterCount){
+                if(ar[i][0] * 7 - yVar * 90 > 90){
+                    yVar+=1
+                }
+            ctx.drawImage(ar[i][1],ar[i][0] * 7 - yVar * 90, 10 + yVar * 10)
+            }
+        }
+    }else if(currentGameState === gameState.Introduction){
+        if(chosenGirl === 1){
+            var girl = new Image()
+            girl.src = "images/girl6.png"
+            var firstSentence = ".............................................................................................................................................."
+            ar = getWords(firstSentence)
+            var yVar = 0
+            for(var i = 0; i < ar.length;i++){
+                if(i < letterCount){
+                    if(ar[i][0] * 7 - yVar * 90 > 90){
+                        yVar+=1
+                    }
+                ctx.drawImage(ar[i][1],ar[i][0] * 7 - yVar * 90, 10 + yVar * 10)
+                }
+            }
+            ctx.drawImage(girl,-5,96 - 32)
+
+
+        }else if(chosenGirl === 2){
+            var firstSentence = "HI"
+            ar = getWords(firstSentence)
+            var yVar = 0
+            for(var i = 0; i < ar.length;i++){
+                if(i < letterCount){
+                    if(ar[i][0] * 7 - yVar * 90 > 90){
+                        yVar+=1
+                    }
+                ctx.drawImage(ar[i][1],ar[i][0] * 7 - yVar * 90, 10 + yVar * 10)
+                }
+            }
+
+            var girl2 = new Image()
+            girl2.src = "images/girl1.png"
+            ctx.drawImage(girl2,20,96 - 32)
+        }else if(chosenGirl === 3){
+            var firstSentence = "HELLO.  MY    NAME IS JILL."
+            ar = getWords(firstSentence)
+            var yVar = 0
+            for(var i = 0; i < ar.length;i++){
+                if(i < letterCount){
+                    if(ar[i][0] * 7 - yVar * 90 > 90){
+                        yVar+=1
+                    }
+                ctx.drawImage(ar[i][1],ar[i][0] * 7 - yVar * 90, 10 + yVar * 10)
+                }
+            }
+            var girl3 = new Image()
+            girl3.src = "images/girl2.png"
+            ctx.drawImage(girl3,45,96 - 32)
+        }else if(chosenGirl === 4){
+            var firstSentence = "WED ME AND WE SHALL BRING ABOUT THE AGE OF DARKNESS.  FIRE WILL FALL FROM THE SKY AND THE INNOCENT WILL TURN TO ASH."
+            ar = getWords(firstSentence)
+            var yVar = 0
+            for(var i = 0; i < ar.length;i++){
+                if(i < letterCount){
+                    if(ar[i][0] * 7 - yVar * 90 > 90){
+                        yVar+=1
+                    }
+                ctx.drawImage(ar[i][1],ar[i][0] * 7 - yVar * 90, 10 + yVar * 10)
+                }
+            }
+
+            
+            var girl4 = new Image()
+            girl4.src = "images/girl3.png"
+            ctx.drawImage(girl4,70,96 - 32)
+
+        }
+    }else if(currentGameState === gameState.main){
+        if(chosenGirl === 1){
+            var girl = new Image()
+            girl.src = "images/girl6.png"
+            ctx.drawImage(girl,-5,96 - 32)
+        }else if(chosenGirl === 2){
+            var girl2 = new Image()
+            girl2.src = "images/girl1.png"
+            ctx.drawImage(girl2,-5,96 - 32)
+        }else if(chosenGirl === 3){
+            var girl3 = new Image()
+            girl3.src = "images/girl2.png"
+            ctx.drawImage(girl3,-5,96 - 32)
+        }else if(chosenGirl === 4){ 
+            var girl4 = new Image()
+            girl4.src = "images/girl3.png"
+            ctx.drawImage(girl4,-5,96 - 32)
+
+        }
+
+        var talkI = new Image()
+        talkI.src = "images/talk.png"
+        ctx.drawImage(talkI,28,96-22)
+
+        if(energy === 0){
+        var proposeI = new Image()
+        proposeI.src = "images/propose.png"
+            ctx.drawImage(proposeI,28,96-10)
+        }
+
+        var girl3 = new Image()
+        girl3.src = "images/energy.png"
+        ctx.drawImage(girl3,0,0)
+        for(var i = 0; i < energy; i++){
+            var girl3 = new Image()
+            girl3.src = "images/energyBit.png"
+            ctx.drawImage(girl3,58 + i * 10,0)
+        }
+        if(dialoguePicked === true){
+            //console.log(chosenGirlDialogue[chosenGirl])
+            ar = getWords(chosenGirlDialogue[chosenGirl][currentDialogueOption])
+            var yVar = 0
+            for(var i = 0; i < ar.length;i++){
+                if(i < letterCount){
+                    if(ar[i][0] * 7 - yVar * 90 > 90){
+                        yVar+=1
+                    }
+                ctx.drawImage(ar[i][1],ar[i][0] * 7 - yVar * 90, 20 + yVar * 10)
+                }
+            }
+        }
+
+    }else if(currentGameState === gameState.end){
+        var girl3 = new Image()
+            girl3.src = "images/marry.png"
+            ctx.drawImage(girl3,ringX,ringY)
+        for(var i = 0; i < hearts.length; i++){
+            var girl3 = new Image()
+            girl3.src = "images/heart.png"
+            ctx.drawImage(girl3,hearts[i][0],hearts[i][1])
+        }
+            
+    }
+}
+var hearts= []
+var heartsX = -1
+var heartsY = 0
+
+var updateHearts = function(){
+    heartsX+=1
+    if(heartsX>10){
+        heartsX=0
+        heartsY+=1
+    }
+    hearts.push([heartsX * 9, heartsY*9])
+}
+
+var draw = function(){
+    var c=document.getElementById("game");
+    var ctx=c.getContext("2d");
+
+    ctx.clearRect(0, 0, worldSize, worldSize);	
+    ctx.fillStyle = 'gray';
+    ctx.fillRect(0, 0, worldSize, worldSize);
+
+   
+
+    ctx.strokeStyle = "black"
+    ctx.beginPath();
+    //context.arc(x,y,r,sAngle,eAngle,counterclockwise);
+    ctx.arc(worldSize/2,worldSize/2,centerRadius,0,2*Math.PI);
+    ctx.stroke();
+
+    ctx.beginPath();
+    //context.arc(x,y,r,sAngle,eAngle,counterclockwise);
+    ctx.arc(worldSize/2,worldSize/2,worldSize/2,0,2*Math.PI);
+    ctx.stroke();
+
+
+    //var circlesColliding = function( x1, y1, radius1, x2, y2, radius2){
+    //circlesColliding(worldSize/2,worldSize/2,worldSize/2,playerX,playerY,25)
+    for(var i = 0; i < circles.length;i++){
+        ctx.strokeStyle = circles[i][5]
+        ctx.beginPath();
+        ctx.arc(circles[i][0],circles[i][1],circles[i][2],0,2*Math.PI);
+        ctx.stroke();
+    }
+    draw2(ctx)
+
+}
+
+var collisionDeal = function(originalVelX, originalVelY, secondVelX, secondVelY, radius1, radius2){
+    var combinedMass = radius1 + radius2
+    var newOriginalX =  (originalVelX * (radius1 - radius2) + (2 * radius2 * secondVelX)) / (combinedMass)
+    var newOriginalY =  (originalVelY * (radius1 - radius2) + (2 * radius2 * secondVelY)) / (combinedMass)
+
+    var newSecondX =  (secondVelX * (radius2 - radius1) + (2 * radius1 * originalVelX)) / (combinedMass)
+    var newSecondY =  (secondVelY * (radius2 - radius1) + (2 * radius1 * originalVelY)) / (combinedMass)
+
+    return [newOriginalX, newOriginalY, newSecondX, newSecondY]
+}
+var ringVX = 1
+var ringVY = 1
+var update = function(){
+    //centerRadius+=1
+    if(centerRadius > 50){
+        centerRadius = 0
+    }
+    if(currentGameState === gameState.end){
+        ringX+=ringVX
+        ringY+=ringVY
+        if(collidingWithEdge(ringX + 16 ,ringY + 12,12 , worldSize/2,worldSize/2,worldSize/2)){
+        //if(ringX > 96 ||  ringX < 0){
+            ringVX*=-1
+        //}
+       // if(ringY > 96 ||  ringY < 0){
+
+            ringVY*=-1
+            var x = ringX - worldSize/2
+            var y = ringY - worldSize/2 
+
+            ringX-=x/50
+            ringY-=y/50
+
+        }
+
+
+        for(var i = 0; i < circles.length;i++){
+            if(circlesColliding(circles[i][0],circles[i][1],circles[i][2],ringX + 16,ringY + 12,12)){
+                var results = collisionDeal( circles[i][3], circles[i][4], ringVX, ringVY, circles[i][2], 12)
+
+                circles[i][3] = results[0]
+                circles[i][4] = results[1]
+
+                ringVX = results[2]
+                ringVY = results[3]
+
+                circles[i][0]+=circles[i][3]
+                circles[i][1]+=circles[i][4]
+
+                ringX+=ringVX
+                ringY+=ringVY
+            }
+        }
+    }
+
+    for(var i = 0; i < circles.length;i++){
+        circles[i][0]+=circles[i][3]
+        circles[i][1]+=circles[i][4]
+    }
+
+
+    for(var i = 0; i < circles.length;i++){
+        if(collidingWithEdge(circles[i][0] + circles[i][3],circles[i][1] + circles[i][4],circles[i][2], worldSize/2,worldSize/2,worldSize/2)){
+            circles[i][3]*=-1
+            circles[i][4]*=-1
+
+            var x = circles[i][0] - worldSize/2
+            var y = circles[i][1] - worldSize/2 
+
+            circles[i][0]-=x/50
+            circles[i][1]-=y/50
+        }
+    }
+
+    for(var i = 0; i < circles.length;i++){
+        if(circlesColliding(circles[i][0],circles[i][1],circles[i][2],worldSize/2,worldSize/2,centerRadius)){
+            var results = collisionDeal( circles[i][3], circles[i][4], 0, 0, circles[i][2], centerRadius)
+
+            circles[i][3] = results[0]
+            circles[i][4] = results[1]
+            var x = circles[i][0] - worldSize/2
+            var y = circles[i][1] - worldSize/2 
+
+            circles[i][0]+=x/50
+            circles[i][1]+=y/50
+
+            circles[i][0]+=circles[i][3]
+            circles[i][1]+=circles[i][4]
+        }
+    }
+
+
+
+    for(var i = 0; i < circles.length;i++){
+        for(var j = 0; j < circles.length;j++){
+            if(i != j){
+                if (circles[i][0] + circles[i][2] + circles[j][2] >circles[j][0] && circles[i][0] < circles[j][0] + circles[i][2]  + circles[j][2] 
+                    && circles[i][1] +circles[i][2]  + circles[j][2] > circles[j][1]  &&  circles[i][1]  < circles[j][1] + circles[i][2] + circles[j][2] ){
+                    if(circlesColliding(circles[i][0],circles[i][1],circles[i][2],circles[j][0],circles[j][1],circles[j][2])){
+                        var results = collisionDeal( circles[i][3], circles[i][4], circles[j][3], circles[j][4], circles[i][2], circles[j][2])
+                        //console.log(results)
+                        var tmpC = circles[i][5]
+                        var tmpC2 = circles[j][5]
+
+                        circles[j][5] = tmpC
+                        circles[i][5] = tmpC2
+
+
+                        circles[i][3] = results[0]
+                        circles[i][4] = results[1]
+
+                        circles[j][3] = results[2]
+                        circles[j][4] = results[3] 
+
+                        circles[i][0]+=circles[i][3]
+                        circles[i][1]+=circles[i][4]
+
+                        circles[j][0]+=circles[j][3]
+                        circles[j][1]+=circles[j][4]
+
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+}
+
+
+initialize();
+runGameLoop();
+
+
+
+</script>
+</body>
